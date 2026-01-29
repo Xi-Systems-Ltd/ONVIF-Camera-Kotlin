@@ -23,22 +23,27 @@ allprojects {
         configure<PublishingExtension> {
             repositories {
                 maven {
-                    name = "testMaven"
-                    url = layout.buildDirectory.file("testMaven").get().asFile.toURI()
+                    name = "githubPackages"
+                    url = uri("https://maven.pkg.github.com/Xi-Systems-Ltd/ONVIF-Camera-Kotlin")
+                    // username and password (a personal Github access token) should be specified
+                    // as gpr.user` and `gpr.key` Gradle properties or alternatively
+                    // as `GITHUB_ACTOR` and `GITHUB_TOKEN` environment variables
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR") ?: findProperty("gpr.user") as String? ?: ""
+                        password = System.getenv("GITHUB_TOKEN") ?: findProperty("gpr.key") as String? ?: ""
+                    }
                 }
             }
         }
         configure<MavenPublishBaseExtension> {
-            publishToMavenCentral(automaticRelease = true)
-            signAllPublications()
             pom {
                 name.set("ONVIF Camera Kotlin")
                 description.set("A Kotlin library to interact with ONVIF cameras.")
-                url.set("https://github.com/sproctor/ONVIF-Camera-Kotlin/")
+                url.set("https://github.com/Xi-Systems-Ltd/ONVIF-Camera-Kotlin/")
                 licenses {
                     license {
                         name.set("MIT")
-                        url.set("https://github.com/sproctor/ONVIFCameraAndroid/blob/master/LICENSE")
+                        url.set("https://github.com/Xi-Systems-Ltd/ONVIF-Camera-Kotlin/blob/master/LICENSE")
                     }
                 }
                 developers {
@@ -47,9 +52,14 @@ allprojects {
                         name.set("Sean Proctor")
                         email.set("sproctor@gmail.com")
                     }
+                    developer {
+                        id.set("PHernimanXiSystems")
+                        name.set("Peter Herniman")
+                        email.set("pete.herniman@xisystems.co.uk")
+                    }
                 }
                 scm {
-                    url.set("https://github.com/sproctor/ONVIF-Camera-Kotlin/tree/master")
+                    url.set("https://github.com/Xi-Systems-Ltd/ONVIF-Camera-Kotlin/tree/master")
                 }
             }
         }
