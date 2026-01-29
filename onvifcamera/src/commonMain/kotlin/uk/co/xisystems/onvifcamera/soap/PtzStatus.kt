@@ -9,8 +9,8 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 internal class PtzStatus(
     @XmlElement(true)
     @XmlSerialName("Position", "http://www.onvif.org/ver10/schema", "tt")
-    val position: PtzVector,
+    val position: PtzVector? = null,
     @XmlElement(true)
     @XmlSerialName("MoveStatus", "http://www.onvif.org/ver10/schema", "tt")
-    val moveStatus: PtzMoveStatus
+    val moveStatus: PtzMoveStatus? = null
 )

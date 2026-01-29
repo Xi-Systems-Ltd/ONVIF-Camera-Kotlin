@@ -93,8 +93,8 @@ public class OnvifDevice internal constructor(
 
     public suspend fun stop(
         profile: MediaProfile,
-        panTilt: Boolean = true,
-        zoom: Boolean = true
+        panTilt: Boolean? = null,
+        zoom: Boolean? = null
     ) {
         val endpoint = getEndpointForRequest(OnvifRequestType.Stop)
         execute(endpoint, stopCommand(profile, panTilt, zoom), username, password, logger)

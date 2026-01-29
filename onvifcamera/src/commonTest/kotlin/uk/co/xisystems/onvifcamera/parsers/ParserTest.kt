@@ -54,6 +54,6 @@ class ParserTest {
     fun testOnvifStatusParser() {
         val input = readResourceFile("status.xml")
         val result = parseOnvifStatus(input)
-        assertEquals(0.12f, result.ptz.pan)
+        assertEquals(0.12f, result.ptz.panTilt?.pan)
     }
 }

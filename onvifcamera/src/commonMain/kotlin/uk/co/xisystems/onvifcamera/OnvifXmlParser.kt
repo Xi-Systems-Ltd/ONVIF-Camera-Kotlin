@@ -89,13 +89,7 @@ internal fun parseOnvifConfigurations(input: String): List<Configuration> {
 internal fun parseOnvifStatus(input: String): Status {
     val result = parseSoap<GetStatusResponse>(input)
 
-    return Status(
-        ptz = PanTiltZoom(
-            pan = result.ptzStatus.position.panTilt.x,
-            tilt = result.ptzStatus.position.panTilt.y,
-            zoom = result.ptzStatus.position.zoom.x
-        )
-    )
+    return Status(ptz = result.ptzStatus.getPanTiltZoom())
 }
 
 internal fun PtzConfiguration.toConfiguration(): Configuration =
@@ -108,3 +102,18 @@ internal fun PtzConfiguration.toConfiguration(): Configuration =
         zoomMin = zoomLimits.range.xRange.min,
         zoomMax = zoomLimits.range.xRange.min
     )
+
+internal fun PtzStatus.getPanTiltZoom(): PanTiltZoom = PanTiltZoom(
+    panTilt = position.getPanTiltOrNull(),
+    zoom = position?.zoom?.x
+)
+
+internal fun PtzVector?.getPanTiltOrNull(): PanTilt? =
+    if (this != null) {
+        PanTilt(
+            pan = panTilt.x,
+            tilt = panTilt.y
+        )
+    } else {
+        null
+    }

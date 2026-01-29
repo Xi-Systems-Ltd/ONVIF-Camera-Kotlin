@@ -50,13 +50,21 @@ internal object OnvifCommands {
         append("<AbsoluteMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
         append("<ProfileToken>${profile.token}</ProfileToken>")
         append("<Position>")
-        append("<PanTilt x=\"${position.pan}\" y=\"${position.tilt}\"/>")
-        append("<Zoom x=\"${position.zoom}\"/>")
+        position.panTilt?.let {
+            append("<PanTilt x=\"${it.pan}\" y=\"${it.tilt}\"/>")
+        }
+        position.zoom?.let {
+            append("<Zoom x=\"${it}\"/>")
+        }
         append("</Position>")
         speed?.let {
             append("<Speed>")
-            append("<PanTilt x=\"${it.pan}\" y=\"${it.tilt}\"/>")
-            append("<Zoom x=\"${it.zoom}\"/>")
+            it.panTilt?.let { panTilt ->
+                append("<PanTilt x=\"${panTilt.pan}\" y=\"${panTilt.tilt}\"/>")
+            }
+            it.zoom?.let { zoom ->
+                append("<Zoom x=\"${zoom}\"/>")
+            }
             append("</Speed>")
         }
         append("</AbsoluteMove>")
@@ -72,13 +80,21 @@ internal object OnvifCommands {
         append("<RelativeMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
         append("<ProfileToken>${profile.token}</ProfileToken>")
         append("<Translation>")
-        append("<PanTilt x=\"${translation.pan}\" y=\"${translation.tilt}\"/>")
-        append("<Zoom x=\"${translation.zoom}\"/>")
+        translation.panTilt?.let {
+            append("<PanTilt x=\"${it.pan}\" y=\"${it.tilt}\"/>")
+        }
+        translation.zoom?.let {
+            append("<Zoom x=\"${it}\"/>")
+        }
         append("</Translation>")
         speed?.let {
             append("<Speed>")
-            append("<PanTilt x=\"${it.pan}\" y=\"${it.tilt}\"/>")
-            append("<Zoom x=\"${it.zoom}\"/>")
+            it.panTilt?.let { panTilt ->
+                append("<PanTilt x=\"${panTilt.pan}\" y=\"${panTilt.tilt}\"/>")
+            }
+            it.zoom?.let { zoom ->
+                append("<Zoom x=\"${zoom}\"/>")
+            }
             append("</Speed>")
         }
         append("</RelativeMove>")
@@ -89,36 +105,42 @@ internal object OnvifCommands {
     internal fun continuousMoveCommand(
         profile: MediaProfile,
         speed: PanTiltZoom
-    ): String {
-        return (soapHeader
-                + "<ContinuousMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">"
-                + "<ProfileToken>${profile.token}</ProfileToken>"
-                + "<Velocity>"
-                + "<PanTilt x=\"${speed.pan}\" y=\"${speed.tilt}\"/>"
-                + "<Zoom x=\"${speed.zoom}\"/>"
-                + "</Velocity>"
-                + "</ContinuousMove>"
-                + envelopeEnd
-                )
+    ): String = buildString {
+        append(soapHeader)
+        append("<ContinuousMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<ProfileToken>${profile.token}</ProfileToken>")
+        append("<Velocity>")
+        speed.panTilt?.let {
+            append("<PanTilt x=\"${it.pan}\" y=\"${it.tilt}\"/>")
+        }
+        speed.zoom?.let {
+            append("<Zoom x=\"${it}\"/>")
+        }
+        append("</Velocity>")
+        append("</ContinuousMove>")
+        append(envelopeEnd)
     }
 
     internal fun stopCommand(
         profile: MediaProfile,
-        panTilt: Boolean = true,
-        zoom: Boolean = true
-    ): String {
-        return (soapHeader
-                + "<Stop xmlns=\"http://www.onvif.org/ver20/media/wsdl\">"
-                + "<ProfileToken>${profile.token}</ProfileToken>"
-                + "<PanTilt>"
-                + panTilt.toString()
-                + "</PanTilt>"
-                + "<Zoom>"
-                + zoom.toString()
-                + "</Zoom>"
-                + "</Stop>"
-                + envelopeEnd
-                )
+        panTilt: Boolean? = null,
+        zoom: Boolean? = null
+    ): String = buildString {
+        append(soapHeader)
+        append("<Stop xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<ProfileToken>${profile.token}</ProfileToken>")
+        panTilt?.let {
+            append("<PanTilt>")
+            append(it)
+            append("</PanTilt>")
+        }
+        zoom?.let {
+            append("<Zoom>")
+            append(it)
+            append("</Zoom>")
+        }
+        append("</Stop>")
+        append(envelopeEnd)
     }
 
 
