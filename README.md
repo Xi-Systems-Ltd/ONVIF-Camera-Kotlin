@@ -4,7 +4,7 @@ Kotlin MPP implementation of ONVIF discovery for cameras on Android and JVM.
 Install with Gradle (must have mavenCentral in repositories):
 
 ```kotlin
-implementation("com.seanproctor:onvifcamera:<VERSION>")
+implementation("uk.co.xisystems:onvifcamera:<VERSION>")
 ```
 
 ## Connect to an Onvif camera and information

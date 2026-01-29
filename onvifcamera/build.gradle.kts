@@ -5,14 +5,14 @@ plugins {
     alias(libs.plugins.vanniktech.maven.publish.base)
 }
 
-group = "com.seanproctor"
+group = "uk.co.xisystems"
 version = "2.1.5"
 
 kotlin {
     androidLibrary {
         minSdk = 21
         compileSdk = 36
-        namespace = "com.seanproctor.onvifcamera"
+        namespace = "uk.co.xisystems.onvifcamera"
         withHostTest { }
     }
     jvm()
