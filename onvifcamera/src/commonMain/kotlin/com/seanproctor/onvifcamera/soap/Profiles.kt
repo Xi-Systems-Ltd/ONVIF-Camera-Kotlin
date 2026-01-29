@@ -11,5 +11,11 @@ internal class Profiles(
     @XmlElement(true)
     @XmlSerialName("Name", "http://www.onvif.org/ver10/schema", "tt")
     val name: String,
-    val encoder: VideoEncoderConfiguration,
+    val encoder: VideoEncoderConfiguration? = null,
+    @XmlElement(true)
+    @XmlSerialName("PTZConfiguration", "http://www.onvif.org/ver10/schema", "tt")
+    val ptzConfiguration: PtzConfiguration? = null,
+    @XmlElement(true)
+    @XmlSerialName("MetadataConfiguration", "http://www.onvif.org/ver10/schema", "tt")
+    val metadataConfiguration: MetadataConfiguration? = null
 )

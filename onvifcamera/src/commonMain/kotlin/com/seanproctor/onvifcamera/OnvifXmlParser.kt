@@ -5,6 +5,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.serializer
 import nl.adaptivity.xmlutil.serialization.XML
+import kotlin.String
 
 private inline fun <reified T : Any> parseSoap(input: String): T {
     val module = SerializersModule {
@@ -30,8 +31,22 @@ internal fun parseOnvifProfiles(input: String): List<MediaProfile> {
     val result = parseSoap<GetProfilesResponse>(input)
 
     return result.profiles.map {
-        MediaProfile(it.name, it.token, it.encoder.encoding)
+        MediaProfile(
+            name = it.name,
+            token = it.token,
+            encoding = it.encoder?.encoding,
+            configuration = it.ptzConfiguration?.toConfiguration(),
+            ptzFilter = it.metadataConfiguration?.ptzStatus?.toPtzFlags()
+        )
     }
+}
+
+private fun PtzFilter.toPtzFlags(): PtzFlags {
+    return PtzFlags(
+        statusEnabled = status,
+        positionEnabled = position,
+        fieldOfViewEnabled = fieldOfView
+    )
 }
 
 internal fun parseOnvifStreamUri(input: String): String {
@@ -66,3 +81,31 @@ internal fun parseOnvifDeviceInformation(input: String): OnvifDeviceInformation 
         hardwareId = result.hardwareId,
     )
 }
+
+internal fun parseOnvifConfigurations(input: String): List<Configuration> {
+    val result = parseSoap<GetConfigurationsResponse>(input)
+    return result.ptzConfiguration.map(PtzConfiguration::toConfiguration)
+}
+
+internal fun parseOnvifStatus(input: String): Status {
+    val result = parseSoap<GetStatusResponse>(input)
+
+    return Status(
+        ptz = PanTiltZoom(
+            pan = result.ptzStatus.position.panTilt.x,
+            tilt = result.ptzStatus.position.panTilt.y,
+            zoom = result.ptzStatus.position.zoom.x
+        )
+    )
+}
+
+internal fun PtzConfiguration.toConfiguration(): Configuration =
+    Configuration(
+        token = nodeToken,
+        panMin = panTiltLimits.range.xRange.min,
+        panMax = panTiltLimits.range.xRange.max,
+        tiltMin = panTiltLimits.range.yRange.min,
+        tiltMax = panTiltLimits.range.yRange.max,
+        zoomMin = zoomLimits.range.xRange.min,
+        zoomMax = zoomLimits.range.xRange.min
+    )

@@ -1,10 +1,16 @@
 package com.seanproctor.onvifcamera
 
+import com.seanproctor.onvifcamera.OnvifCommands.absoluteMoveCommand
+import com.seanproctor.onvifcamera.OnvifCommands.continuousMoveCommand
 import com.seanproctor.onvifcamera.OnvifCommands.deviceInformationCommand
+import com.seanproctor.onvifcamera.OnvifCommands.getConfigurationsCommand
 import com.seanproctor.onvifcamera.OnvifCommands.getSnapshotURICommand
+import com.seanproctor.onvifcamera.OnvifCommands.getStatusCommand
 import com.seanproctor.onvifcamera.OnvifCommands.getStreamURICommand
 import com.seanproctor.onvifcamera.OnvifCommands.profilesCommand
+import com.seanproctor.onvifcamera.OnvifCommands.relativeMoveCommand
 import com.seanproctor.onvifcamera.OnvifCommands.servicesCommand
+import com.seanproctor.onvifcamera.OnvifCommands.stopCommand
 import io.ktor.client.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
@@ -51,6 +57,53 @@ public class OnvifDevice internal constructor(
         val endpoint = getEndpointForRequest(OnvifRequestType.GetSnapshotURI)
         val response = execute(endpoint, getSnapshotURICommand(profile), username, password, logger)
         return fixHost(parseOnvifSnapshotUri(response))
+    }
+
+    public suspend fun getConfigurations(): List<Configuration> {
+        val endpoint = getEndpointForRequest(OnvifRequestType.GetConfigurations)
+        val response = execute(endpoint, getConfigurationsCommand, username, password, logger)
+        return parseOnvifConfigurations(response)
+    }
+
+    public suspend fun absoluteMove(
+        profile: MediaProfile,
+        position: PanTiltZoom,
+        speed: PanTiltZoom? = null
+    ) {
+        val endpoint = getEndpointForRequest(OnvifRequestType.AbsoluteMove)
+        execute(endpoint, absoluteMoveCommand(profile, position, speed), username, password, logger)
+    }
+
+    public suspend fun relativeMove(
+        profile: MediaProfile,
+        translation: PanTiltZoom,
+        speed: PanTiltZoom? = null
+    ) {
+        val endpoint = getEndpointForRequest(OnvifRequestType.RelativeMove)
+        execute(endpoint, relativeMoveCommand(profile, translation, speed), username, password, logger)
+    }
+
+    public suspend fun continuousMove(
+        profile: MediaProfile,
+        speed: PanTiltZoom
+    ) {
+        val endpoint = getEndpointForRequest(OnvifRequestType.ContinuousMove)
+        execute(endpoint, continuousMoveCommand(profile, speed), username, password, logger)
+    }
+
+    public suspend fun stop(
+        profile: MediaProfile,
+        panTilt: Boolean = true,
+        zoom: Boolean = true
+    ) {
+        val endpoint = getEndpointForRequest(OnvifRequestType.Stop)
+        execute(endpoint, stopCommand(profile, panTilt, zoom), username, password, logger)
+    }
+
+    public suspend fun getStatus(profile: MediaProfile): Status {
+        val endpoint = getEndpointForRequest(OnvifRequestType.GetStatus)
+        val response = execute(endpoint, getStatusCommand(profile), username, password, logger)
+        return parseOnvifStatus(response)
     }
 
     private fun getEndpointForRequest(requestType: OnvifRequestType): String {

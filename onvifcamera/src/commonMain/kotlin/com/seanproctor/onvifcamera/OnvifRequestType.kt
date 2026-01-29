@@ -9,11 +9,18 @@ internal enum class OnvifRequestType {
     GetDeviceInformation,
     GetProfiles,
     GetStreamURI,
-    GetSnapshotURI;
+    GetSnapshotURI,
+    GetConfigurations,
+    AbsoluteMove,
+    RelativeMove,
+    ContinuousMove,
+    Stop,
+    GetStatus;
 
     fun namespace(): String =
         when (this) {
             GetServices, GetDeviceInformation -> "http://www.onvif.org/ver10/device/wsdl"
             GetProfiles, GetStreamURI, GetSnapshotURI -> "http://www.onvif.org/ver20/media/wsdl"
+            GetConfigurations, AbsoluteMove, RelativeMove, ContinuousMove, Stop, GetStatus -> "http://www.onvif.org/ver20/ptz/wsdl"
         }
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding"
+    xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope"
+    xmlns:c14n="http://www.w3.org/2001/10/xml-exc-c14n#"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+    xmlns:ter="http://www.onvif.org/ver10/error"
+    xmlns:tev="http://www.onvif.org/ver10/events/wsdl"
+    xmlns:tns1="http://www.onvif.org/ver10/topics"
+    xmlns:tnsaxis="http://www.axis.com/2009/event/topics"
+    xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl" xmlns:tt="http://www.onvif.org/ver10/schema"
+    xmlns:wsa5="http://www.w3.org/2005/08/addressing" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2"
+    xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+    xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <SOAP-ENV:Body>
+        <tptz:GetStatusResponse>
+            <tt:PTZStatus>
+                <tt:Position>
+                    <tt:PanTilt x="0.12" y="-0.03" />
+                    <tt:Zoom x="0.40" />
+                </tt:Position>
+                <tt:MoveStatus>
+                    <tt:PanTilt>IDLE</tt:PanTilt>
+                    <tt:Zoom>MOVING</tt:Zoom>
+                </tt:MoveStatus>
+                <tt:Error></tt:Error>
+                <tt:UtcTime>2026-01-29T09:31:25Z</tt:UtcTime>
+            </tt:PTZStatus>
+        </tptz:GetStatusResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

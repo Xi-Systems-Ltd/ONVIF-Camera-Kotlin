@@ -1,8 +1,10 @@
 package com.seanproctor.onvifcamera.parsers
 
+import com.seanproctor.onvifcamera.parseOnvifConfigurations
 import com.seanproctor.onvifcamera.parseOnvifDeviceInformation
 import com.seanproctor.onvifcamera.parseOnvifProfiles
 import com.seanproctor.onvifcamera.parseOnvifSnapshotUri
+import com.seanproctor.onvifcamera.parseOnvifStatus
 import com.seanproctor.onvifcamera.parseOnvifStreamUri
 import com.seanproctor.onvifcamera.readResourceFile
 import kotlin.test.Test
@@ -28,6 +30,10 @@ class ParserTest {
         val input = readResourceFile("profiles.xml")
         val result = parseOnvifProfiles(input)
         assertEquals(2, result.size)
+        result[0].let {
+            assertEquals(0.0f, it.configuration?.zoomMin)
+            assertEquals(true, it.ptzPositionEnabled())
+        }
     }
 
     @Test
@@ -35,5 +41,19 @@ class ParserTest {
         val input = readResourceFile("deviceInfo.xml")
         val result = parseOnvifDeviceInformation(input)
         assertEquals("AXIS", result.manufacturer)
+    }
+
+    @Test
+    fun testOnvifConfigurationsParser() {
+        val input = readResourceFile("configurations.xml")
+        val result = parseOnvifConfigurations(input)
+        assertEquals(1, result.size)
+    }
+
+    @Test
+    fun testOnvifStatusParser() {
+        val input = readResourceFile("status.xml")
+        val result = parseOnvifStatus(input)
+        assertEquals(0.12f, result.ptz.pan)
     }
 }

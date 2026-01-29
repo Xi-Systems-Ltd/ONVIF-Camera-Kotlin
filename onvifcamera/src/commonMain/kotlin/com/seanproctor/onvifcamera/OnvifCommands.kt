@@ -35,6 +35,102 @@ internal object OnvifCommands {
                 + "</GetSnapshotUri>" + envelopeEnd)
     }
 
+    internal const val getConfigurationsCommand = (
+            soapHeader
+                    + "<GetConfigurations xmlns=\"http://www.onvif.org/ver20/ptz/wsdl\"/>"
+                    + envelopeEnd
+            )
+
+    internal fun absoluteMoveCommand(
+        profile: MediaProfile,
+        position: PanTiltZoom,
+        speed: PanTiltZoom? = null
+    ): String = buildString {
+        append(soapHeader)
+        append("<AbsoluteMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<ProfileToken>${profile.token}</ProfileToken>")
+        append("<Position>")
+        append("<PanTilt x=\"${position.pan}\" y=\"${position.tilt}\"/>")
+        append("<Zoom x=\"${position.zoom}\"/>")
+        append("</Position>")
+        speed?.let {
+            append("<Speed>")
+            append("<PanTilt x=\"${it.pan}\" y=\"${it.tilt}\"/>")
+            append("<Zoom x=\"${it.zoom}\"/>")
+            append("</Speed>")
+        }
+        append("</AbsoluteMove>")
+        append(envelopeEnd)
+    }
+
+    internal fun relativeMoveCommand(
+        profile: MediaProfile,
+        translation: PanTiltZoom,
+        speed: PanTiltZoom? = null
+    ): String = buildString {
+        append(soapHeader)
+        append("<RelativeMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<ProfileToken>${profile.token}</ProfileToken>")
+        append("<Translation>")
+        append("<PanTilt x=\"${translation.pan}\" y=\"${translation.tilt}\"/>")
+        append("<Zoom x=\"${translation.zoom}\"/>")
+        append("</Translation>")
+        speed?.let {
+            append("<Speed>")
+            append("<PanTilt x=\"${it.pan}\" y=\"${it.tilt}\"/>")
+            append("<Zoom x=\"${it.zoom}\"/>")
+            append("</Speed>")
+        }
+        append("</RelativeMove>")
+        append(envelopeEnd)
+    }
+
+
+    internal fun continuousMoveCommand(
+        profile: MediaProfile,
+        speed: PanTiltZoom
+    ): String {
+        return (soapHeader
+                + "<ContinuousMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">"
+                + "<ProfileToken>${profile.token}</ProfileToken>"
+                + "<Velocity>"
+                + "<PanTilt x=\"${speed.pan}\" y=\"${speed.tilt}\"/>"
+                + "<Zoom x=\"${speed.zoom}\"/>"
+                + "</Velocity>"
+                + "</ContinuousMove>"
+                + envelopeEnd
+                )
+    }
+
+    internal fun stopCommand(
+        profile: MediaProfile,
+        panTilt: Boolean = true,
+        zoom: Boolean = true
+    ): String {
+        return (soapHeader
+                + "<Stop xmlns=\"http://www.onvif.org/ver20/media/wsdl\">"
+                + "<ProfileToken>${profile.token}</ProfileToken>"
+                + "<PanTilt>"
+                + panTilt.toString()
+                + "</PanTilt>"
+                + "<Zoom>"
+                + zoom.toString()
+                + "</Zoom>"
+                + "</Stop>"
+                + envelopeEnd
+                )
+    }
+
+
+    internal fun getStatusCommand(profile: MediaProfile): String {
+        return (soapHeader
+                + "<GetStatus xmlns=\"http://www.onvif.org/ver20/ptz/wsdl\">"
+                + "<ProfileToken>${profile.token}</ProfileToken>"
+                + "</GetStatus>"
+                + envelopeEnd
+                )
+    }
+
     internal fun probeCommand(messageId: String): String {
         return "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                 "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" " +
