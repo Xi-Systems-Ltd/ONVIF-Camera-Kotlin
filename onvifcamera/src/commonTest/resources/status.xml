@@ -14,7 +14,7 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <SOAP-ENV:Body>
         <tptz:GetStatusResponse>
-            <tt:PTZStatus>
+            <tptz:PTZStatus>
                 <tt:Position>
                     <tt:PanTilt x="0.12" y="-0.03" />
                     <tt:Zoom x="0.40" />
@@ -25,7 +25,7 @@
                 </tt:MoveStatus>
                 <tt:Error></tt:Error>
                 <tt:UtcTime>2026-01-29T09:31:25Z</tt:UtcTime>
-            </tt:PTZStatus>
+            </tptz:PTZStatus>
         </tptz:GetStatusResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

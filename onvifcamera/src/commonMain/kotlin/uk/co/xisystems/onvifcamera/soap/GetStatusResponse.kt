@@ -8,6 +8,6 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @XmlSerialName("GetStatusResponse", "http://www.onvif.org/ver20/ptz/wsdl", "tptz")
 internal class GetStatusResponse(
     @XmlElement(true)
-    @XmlSerialName("PTZStatus", "http://www.onvif.org/ver10/schema", "tt")
+    @XmlSerialName("PTZStatus", "http://www.onvif.org/ver20/ptz/wsdl", "tptz")
     val ptzStatus: PtzStatus
 )

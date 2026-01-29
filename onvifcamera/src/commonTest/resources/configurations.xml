@@ -13,7 +13,7 @@
                    xmlns:ter="http://www.onvif.org/ver10/error">
     <SOAP-ENV:Body>
         <tptz:GetConfigurationsResponse>
-            <tt:PTZConfiguration>
+            <tptz:PTZConfiguration>
                 <tt:NodeToken>profile_1 h264</tt:NodeToken>
                 <tt:PanTiltLimits>
                     <tt:Range>
@@ -37,7 +37,7 @@
                         </tt:XRange>
                     </tt:Range>
                 </tt:ZoomLimits>
-            </tt:PTZConfiguration>
+            </tptz:PTZConfiguration>
         </tptz:GetConfigurationsResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

@@ -100,7 +100,7 @@ internal fun PtzConfiguration.toConfiguration(): Configuration =
         tiltMin = panTiltLimits.range.yRange.min,
         tiltMax = panTiltLimits.range.yRange.max,
         zoomMin = zoomLimits.range.xRange.min,
-        zoomMax = zoomLimits.range.xRange.min
+        zoomMax = zoomLimits.range.xRange.max
     )
 
 internal fun PtzStatus.getPanTiltZoom(): PanTiltZoom = PanTiltZoom(

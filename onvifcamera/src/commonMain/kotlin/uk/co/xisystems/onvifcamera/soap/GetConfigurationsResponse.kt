@@ -6,6 +6,6 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable
 @XmlSerialName("GetConfigurationsResponse", "http://www.onvif.org/ver20/ptz/wsdl", "tptz")
 internal class GetConfigurationsResponse(
-    @XmlSerialName("PTZConfiguration", "http://www.onvif.org/ver10/schema", "tt")
+    @XmlSerialName("PTZConfiguration", "http://www.onvif.org/ver20/ptz/wsdl", "tptz")
     val ptzConfiguration: List<PtzConfiguration>
 )
