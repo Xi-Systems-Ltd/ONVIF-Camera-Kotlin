@@ -47,7 +47,7 @@ internal object OnvifCommands {
         speed: PanTiltZoom? = null
     ): String = buildString {
         append(soapHeader)
-        append("<AbsoluteMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<AbsoluteMove xmlns=\"http://www.onvif.org/ver20/ptz/wsdl\">")
         append("<ProfileToken>${profile.token}</ProfileToken>")
         append("<Position>")
         position.panTilt?.let {
@@ -77,7 +77,7 @@ internal object OnvifCommands {
         speed: PanTiltZoom? = null
     ): String = buildString {
         append(soapHeader)
-        append("<RelativeMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<RelativeMove xmlns=\"http://www.onvif.org/ver20/ptz/wsdl\">")
         append("<ProfileToken>${profile.token}</ProfileToken>")
         append("<Translation>")
         translation.panTilt?.let {
@@ -107,7 +107,7 @@ internal object OnvifCommands {
         speed: PanTiltZoom
     ): String = buildString {
         append(soapHeader)
-        append("<ContinuousMove xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<ContinuousMove xmlns=\"http://www.onvif.org/ver20/ptz/wsdl\">")
         append("<ProfileToken>${profile.token}</ProfileToken>")
         append("<Velocity>")
         speed.panTilt?.let {
@@ -127,7 +127,7 @@ internal object OnvifCommands {
         zoom: Boolean? = null
     ): String = buildString {
         append(soapHeader)
-        append("<Stop xmlns=\"http://www.onvif.org/ver20/media/wsdl\">")
+        append("<Stop xmlns=\"http://www.onvif.org/ver20/ptz/wsdl\">")
         append("<ProfileToken>${profile.token}</ProfileToken>")
         panTilt?.let {
             append("<PanTilt>")
