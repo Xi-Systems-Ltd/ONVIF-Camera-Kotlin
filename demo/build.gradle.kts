@@ -54,7 +54,7 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId = "com.seanproctor.onvifdemo"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"

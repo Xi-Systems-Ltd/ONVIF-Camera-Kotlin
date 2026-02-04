@@ -10,7 +10,7 @@ version = "2.2.0"
 
 kotlin {
     androidLibrary {
-        minSdk = 21
+        minSdk = 23
         compileSdk = 36
         namespace = "com.seanproctor.onvifcamera"
         withHostTest { }
