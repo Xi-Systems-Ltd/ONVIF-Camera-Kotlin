@@ -7,9 +7,10 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable
 @XmlSerialName("Profiles", "http://www.onvif.org/ver10/media/wsdl", "trt")
 internal class Profiles(
+    @XmlElement(false)
     val token: String,
     @XmlElement(true)
     @XmlSerialName("Name", "http://www.onvif.org/ver10/schema", "tt")
-    val name: String,
-    val encoder: VideoEncoderConfiguration,
+    val name: String?,
+    val encoder: VideoEncoderConfiguration?,
 )
