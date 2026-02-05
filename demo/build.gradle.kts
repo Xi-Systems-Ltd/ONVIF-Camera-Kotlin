@@ -43,7 +43,7 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation(libs.vlcj)
+                implementation(libs.javacv)
             }
         }
     }
@@ -54,7 +54,7 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId = "uk.co.xisystems.onvifdemo"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"

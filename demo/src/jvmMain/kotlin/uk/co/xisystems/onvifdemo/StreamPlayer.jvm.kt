@@ -1,21 +1,45 @@
 package uk.co.xisystems.onvifdemo
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.Image
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
+import org.bytedeco.javacv.FFmpegFrameGrabber
+import org.bytedeco.javacv.Java2DFrameConverter
 
 @Composable
 actual fun StreamPlayer(url: String, modifier: Modifier) {
-    val state = rememberVideoPlayerState()
-    VideoPlayer(
-        url = url,
-        state = state,
-        modifier = modifier,
-        onFinish = {
-            println("Video finished playing")
-        },
-    )
-    LaunchedEffect(state.isResumed) {
-        println("isResumed: ${state.isResumed}")
+    var currentFrame by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(url) {
+        withContext(Dispatchers.IO) {
+            val grabber = FFmpegFrameGrabber(url).apply {
+                start()
+            }
+            val converter = Java2DFrameConverter()
+
+            try {
+                while (true) {
+                    currentCoroutineContext().ensureActive()
+                    val frame = grabber.grab() ?: continue
+                    val bufferedImage = converter.convert(frame)
+                    if (bufferedImage != null) {
+                        currentFrame = bufferedImage.toComposeImageBitmap()
+                    }
+                }
+            } finally {
+                grabber.stop()
+                grabber.release()
+            }
+        }
+    }
+
+    currentFrame?.let {
+        Image(bitmap = it, contentDescription = null, modifier = modifier)
     }
 }

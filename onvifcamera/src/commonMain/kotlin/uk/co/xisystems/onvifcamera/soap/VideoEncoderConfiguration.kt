@@ -7,10 +7,12 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable
 @XmlSerialName("VideoEncoderConfiguration", "http://www.onvif.org/ver10/schema", "tt")
 internal class VideoEncoderConfiguration(
+    @XmlElement(false)
+    val token: String,
     @XmlElement(true)
     @XmlSerialName("Name", "http://www.onvif.org/ver10/schema", "tt")
-    val name: String,
+    val name: String?,
     @XmlElement(true)
     @XmlSerialName("Encoding", "http://www.onvif.org/ver10/schema", "tt")
-    val encoding: String,
+    val encoding: String?,
 )

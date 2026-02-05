@@ -10,7 +10,7 @@ version = "3.0.0"
 
 kotlin {
     androidLibrary {
-        minSdk = 21
+        minSdk = 23
         compileSdk = 36
         namespace = "uk.co.xisystems.onvifcamera"
         withHostTest { }
