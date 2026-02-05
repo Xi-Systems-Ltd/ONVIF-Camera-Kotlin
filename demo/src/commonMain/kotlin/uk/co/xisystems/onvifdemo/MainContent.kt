@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.ktor.http.*
+import kotlinx.coroutines.flow.onCompletion
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,7 +146,6 @@ fun CameraListContent(
             ) {
                 ListItem(
                     modifier = Modifier.clickable {
-                        scanning = false
                         onClick(it)
                     },
                     headlineContent = { Text(it.friendlyName ?: it.id) },
@@ -158,19 +158,20 @@ fun CameraListContent(
                 }
             }
         }
-        if (scanning) {
-            Button(onClick = { scanning = false }) {
-                Text("Cancel")
-            }
-        } else {
-            Button(onClick = { scanning = true }) {
-                Text("Scan")
-            }
+        Button(
+            onClick = { scanning = true },
+            enabled = !scanning
+        ) {
+            val scanButtonText = if (scanning) "Scanning..." else "Scan"
+            Text(scanButtonText)
         }
     }
     LaunchedEffect(scanning) {
         if (scanning) {
             viewModel.discoverDevices()
+                .onCompletion {
+                    scanning = false
+                }
                 .collect {
                     discoveredDevices = it
                 }

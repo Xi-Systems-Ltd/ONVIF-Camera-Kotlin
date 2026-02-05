@@ -1,8 +1,7 @@
 package uk.co.xisystems.onvifcamera.network
 
-import kotlinx.collections.immutable.mutate
-import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import uk.co.xisystems.onvifcamera.DiscoveredOnvifDevice
@@ -15,12 +14,17 @@ internal class OnvifDiscoveryManagerImpl(
     private val socketListener: SocketListener,
     private val logger: OnvifLogger?,
 ): OnvifDiscoveryManager {
-    override fun discoverDevices(retryCount: Int, scope: CoroutineScope): Flow<List<DiscoveredOnvifDevice>> {
+    override fun discoverDevices(
+        retryCount: Int,
+        timeoutMillis: Int,
+        scope: CoroutineScope
+    ): Flow<List<DiscoveredOnvifDevice>> = channelFlow {
         require(retryCount >= 0) { "Retry count cannot be negative" }
 
-        val discoveredDevices = MutableStateFlow(persistentHashMapOf<InetAddress, DiscoveredOnvifDevice>())
+        val discoveredDevices = mutableMapOf<InetAddress, DiscoveredOnvifDevice>()
+
         val job = scope.launch {
-            socketListener.listenForPackets(retryCount)
+            socketListener.listenForPackets(retryCount, timeoutMillis)
                 .catch { cause ->
                     logger?.error("Error listening for devices", cause)
                 }
@@ -41,11 +45,8 @@ internal class OnvifDiscoveryManagerImpl(
                                     addresses = probeMatch.xaddrs?.split(" ")
                                         ?: emptyList(),
                                 )
-                                discoveredDevices.update { deviceMap ->
-                                    deviceMap.mutate {
-                                        it[packet.address] = device
-                                    }
-                                }
+                                discoveredDevices[packet.address] = device
+                                send(discoveredDevices.values.toList())
                             }
                         } catch (e: Throwable) {
                             logger?.error("Error parsing probe response: $data", e)
@@ -53,8 +54,14 @@ internal class OnvifDiscoveryManagerImpl(
                     }
                 }
         }
-        return discoveredDevices
-            .map { it.values.toList() }
-            .onCompletion { job.cancel() }
+
+        job.invokeOnCompletion { cause ->
+            close(cause)
+        }
+
+        // Ensure cancellation from downstream closes the job
+        awaitClose {
+            job.cancel()
+        }
     }
 }

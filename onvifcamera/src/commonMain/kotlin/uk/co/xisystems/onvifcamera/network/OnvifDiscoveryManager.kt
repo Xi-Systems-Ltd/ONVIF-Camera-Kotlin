@@ -9,6 +9,7 @@ import uk.co.xisystems.onvifcamera.DiscoveredOnvifDevice
 public interface OnvifDiscoveryManager {
     public fun discoverDevices(
         retryCount: Int = 1,
+        timeoutMillis: Int = 5000,
         scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
     ): Flow<List<DiscoveredOnvifDevice>>
 }

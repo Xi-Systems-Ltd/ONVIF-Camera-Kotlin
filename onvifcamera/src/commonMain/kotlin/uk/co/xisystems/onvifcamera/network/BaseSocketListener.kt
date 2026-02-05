@@ -13,6 +13,7 @@ import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
+import java.net.SocketTimeoutException
 import java.util.UUID
 
 /** Specific implementation of [SocketListener] */
@@ -46,9 +47,11 @@ internal abstract class BaseSocketListener(
         return multicastSocket
     }
 
-    override fun listenForPackets(retryCount: Int): Flow<DatagramPacket> {
+    override fun listenForPackets(retryCount: Int, timeoutMillis: Int): Flow<DatagramPacket> {
         logger?.debug("Setting up datagram packet flow")
-        val multicastSocket = setupSocket()
+        val multicastSocket = setupSocket().apply {
+            soTimeout = timeoutMillis
+        }
 
         return flow {
             val messageId = UUID.randomUUID()
@@ -66,12 +69,16 @@ internal abstract class BaseSocketListener(
                 }
             }
 
-            while (currentCoroutineContext().isActive && !multicastSocket.isClosed) {
-                val discoveryBuffer = ByteArray(MULTICAST_DATAGRAM_SIZE)
-                val discoveryDatagram = DatagramPacket(discoveryBuffer, discoveryBuffer.size)
-                multicastSocket.receive(discoveryDatagram)
+            try {
+                while (currentCoroutineContext().isActive && !multicastSocket.isClosed) {
+                    val discoveryBuffer = ByteArray(MULTICAST_DATAGRAM_SIZE)
+                    val discoveryDatagram = DatagramPacket(discoveryBuffer, discoveryBuffer.size)
+                    multicastSocket.receive(discoveryDatagram)
 
-                emit(discoveryDatagram)
+                    emit(discoveryDatagram)
+                }
+            } catch (e: SocketTimeoutException) {
+                logger?.debug("Discovery idle for ${timeoutMillis}ms; stopping flow")
             }
         }
             .catch { cause -> logger?.error("Error during discovery", cause) }
