@@ -31,8 +31,8 @@ internal fun parseOnvifProfiles(input: String): List<MediaProfile> {
 
     return result.profiles.map {
         MediaProfile(
-            name = it.name,
             token = it.token,
+            name = it.name,
             encoding = it.encoder?.encoding,
             configuration = it.ptzConfiguration?.toConfiguration(),
             ptzFilter = it.metadataConfiguration?.ptzStatus?.toPtzFlags()
