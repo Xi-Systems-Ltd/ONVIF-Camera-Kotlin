@@ -12,8 +12,8 @@ internal class PtzConfiguration(
     val nodeToken: String,
     @XmlElement(true)
     @XmlSerialName("PanTiltLimits", "http://www.onvif.org/ver10/schema", "tt")
-    val panTiltLimits: PanTiltLimits,
+    val panTiltLimits: PanTiltLimits? = null,
     @XmlElement(true)
     @XmlSerialName("ZoomLimits", "http://www.onvif.org/ver10/schema", "tt")
-    val zoomLimits: ZoomLimits
+    val zoomLimits: ZoomLimits? = null
 )

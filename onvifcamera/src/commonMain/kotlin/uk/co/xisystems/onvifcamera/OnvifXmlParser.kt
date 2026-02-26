@@ -95,12 +95,12 @@ internal fun parseOnvifStatus(input: String): Status {
 internal fun PtzConfiguration.toConfiguration(): Configuration =
     Configuration(
         token = nodeToken,
-        panMin = panTiltLimits.range.xRange.min,
-        panMax = panTiltLimits.range.xRange.max,
-        tiltMin = panTiltLimits.range.yRange.min,
-        tiltMax = panTiltLimits.range.yRange.max,
-        zoomMin = zoomLimits.range.xRange.min,
-        zoomMax = zoomLimits.range.xRange.max
+        panMin = panTiltLimits?.range?.xRange?.min,
+        panMax = panTiltLimits?.range?.xRange?.max,
+        tiltMin = panTiltLimits?.range?.yRange?.min,
+        tiltMax = panTiltLimits?.range?.yRange?.max,
+        zoomMin = zoomLimits?.range?.xRange?.min,
+        zoomMax = zoomLimits?.range?.xRange?.max
     )
 
 internal fun PtzStatus.getPanTiltZoom(): PanTiltZoom = PanTiltZoom(
