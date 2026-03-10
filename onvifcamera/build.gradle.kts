@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "uk.co.xisystems"
-version = "5.0.1"
+version = "5.1.0"
 
 kotlin {
     androidLibrary {
