@@ -7,7 +7,8 @@ import uk.co.xisystems.onvifcamera.OnvifLogger
 internal class AndroidSocketListener(
     private val wifiManager: WifiManager,
     logger: OnvifLogger? = null,
-) : BaseSocketListener(logger) {
+    netConfig: DiscoveryNetworkConfig = DiscoveryNetworkConfig()
+) : BaseSocketListener(logger, netConfig) {
 
     private val multicastLock: WifiManager.MulticastLock by lazy {
         wifiManager.createMulticastLock("OnvifCamera")

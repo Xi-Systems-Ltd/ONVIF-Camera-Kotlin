@@ -5,7 +5,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.isActive
 import uk.co.xisystems.onvifcamera.OnvifCommands
 import uk.co.xisystems.onvifcamera.OnvifLogger
@@ -13,86 +12,118 @@ import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
+import java.net.NetworkInterface
 import java.net.SocketTimeoutException
+import java.util.Enumeration
 import java.util.UUID
 
-/** Specific implementation of [SocketListener] */
 internal abstract class BaseSocketListener(
     private val logger: OnvifLogger?,
+    private val netConfig: DiscoveryNetworkConfig = DiscoveryNetworkConfig(),
 ) : SocketListener {
 
     private val multicastAddress: InetAddress by lazy {
         InetAddress.getByName(MULTICAST_ADDRESS)
     }
 
-    override fun setupSocket(): MulticastSocket {
-        acquireMulticastLock()
+    private fun eligibleInterfaces(): List<NetworkInterface> {
+        val all = NetworkInterface.getNetworkInterfaces()
+        return all
+            .asSequence()
+            .filter { it.isUp && !it.isLoopback && it.supportsMulticast() }
+            .filter { ni ->
+                netConfig.interfaceNames?.let { ni.name in it } ?: true
+            }
+            .toList()
+    }
 
-        val multicastSocket = MulticastSocket(null)
-        multicastSocket.reuseAddress = true
-        multicastSocket.broadcast = true
-        @Suppress("DEPRECATION")
-        multicastSocket.loopbackMode = true
-        // The following isn't available on Android until SDK 33
-        // multicastSocket.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, false)
+    private fun setupSocket(ni: NetworkInterface, timeoutMillis: Int): MulticastSocket {
+        val s = MulticastSocket(null).apply {
+            reuseAddress = true
+            broadcast = true
+            @Suppress("DEPRECATION")
+            loopbackMode = true
+            soTimeout = timeoutMillis
+            timeToLive = netConfig.ttl
 
-        try {
-            multicastSocket.joinGroup(InetSocketAddress(multicastAddress, 0), null)
-            multicastSocket.bind(InetSocketAddress(MULTICAST_PORT))
-            logger?.debug("MulticastSocket has been setup")
-        } catch (ex: Exception) {
-            logger?.error("Could finish setting up the multicast socket and group", ex)
+            // Bind before join on many stacks (safer ordering).
+            bind(InetSocketAddress(MULTICAST_PORT))
+
+            // Force outbound interface
+            networkInterface = ni
+
+            // Join group on that interface
+            joinGroup(InetSocketAddress(multicastAddress, MULTICAST_PORT), ni)
         }
 
-        return multicastSocket
+        logger?.debug("MulticastSocket setup on interface ${ni.name}")
+        return s
     }
 
     override fun listenForPackets(retryCount: Int, timeoutMillis: Int): Flow<DatagramPacket> {
         logger?.debug("Setting up datagram packet flow")
-        val multicastSocket = setupSocket().apply {
-            soTimeout = timeoutMillis
-        }
 
         return flow {
-            val messageId = UUID.randomUUID()
-            val requestMessage = OnvifCommands.probeCommand(messageId.toString()).toByteArray()
-            val requestDatagram = DatagramPacket(
-                requestMessage,
-                requestMessage.size,
-                multicastAddress,
-                MULTICAST_PORT
-            )
+            acquireMulticastLock()
 
-            repeat(1 + retryCount) {
-                if (!multicastSocket.isClosed) {
-                    multicastSocket.send(requestDatagram)
-                }
+            val interfaces = eligibleInterfaces()
+            if (interfaces.isEmpty()) {
+                logger?.error("No multicast-capable interfaces found (or none matched filter)", null)
+                return@flow
             }
 
-            try {
-                while (currentCoroutineContext().isActive && !multicastSocket.isClosed) {
-                    val discoveryBuffer = ByteArray(MULTICAST_DATAGRAM_SIZE)
-                    val discoveryDatagram = DatagramPacket(discoveryBuffer, discoveryBuffer.size)
-                    multicastSocket.receive(discoveryDatagram)
+            // Create one socket per interface
+            val sockets = interfaces.map { ni -> setupSocket(ni, timeoutMillis) }
 
-                    emit(discoveryDatagram)
+            try {
+                val messageId = UUID.randomUUID()
+                val requestMessage = OnvifCommands.probeCommand(messageId.toString()).toByteArray()
+                val requestDatagram = DatagramPacket(
+                    requestMessage,
+                    requestMessage.size,
+                    multicastAddress,
+                    MULTICAST_PORT
+                )
+
+                // Send probe from each interface socket
+                repeat(1 + retryCount) {
+                    sockets.forEach { s ->
+                        if (!s.isClosed) s.send(requestDatagram)
+                    }
                 }
-            } catch (e: SocketTimeoutException) {
-                logger?.debug("Discovery idle for ${timeoutMillis}ms; stopping flow")
+
+                // Receive on all sockets (simple approach: loop and poll each)
+                // For higher throughput you can dedicate a coroutine per socket and merge flows.
+                while (currentCoroutineContext().isActive) {
+                    sockets.forEach { s ->
+                        if (s.isClosed) return@forEach
+                        try {
+                            val buf = ByteArray(MULTICAST_DATAGRAM_SIZE)
+                            val pkt = DatagramPacket(buf, buf.size)
+                            s.receive(pkt)
+                            emit(pkt)
+                        } catch (_: SocketTimeoutException) {
+                            // ignore per-socket timeout; overall loop continues until coroutine cancelled
+                        }
+                    }
+                }
+            } finally {
+                teardownSockets(sockets)
+                releaseMulticastLock()
             }
         }
             .catch { cause -> logger?.error("Error during discovery", cause) }
-            .onCompletion { teardownSocket(multicastSocket) }
     }
 
-    override fun teardownSocket(multicastSocket: MulticastSocket) {
-        logger?.debug("Releasing resources")
-
-        releaseMulticastLock()
-
-        if (!multicastSocket.isClosed) {
-            multicastSocket.leaveGroup(InetSocketAddress(multicastAddress, 0), null)
-            multicastSocket.close()
+    private fun teardownSockets(sockets: List<MulticastSocket>) {
+        sockets.forEach { s ->
+            try {
+                if (!s.isClosed) {
+                    // Leave group requires the same iface you joined on; if you want exact leaving,
+                    // track iface→socket mapping. Closing without leave usually works too.
+                    s.close()
+                }
+            } catch (_: Throwable) {}
         }
     }
 
@@ -104,5 +135,13 @@ internal abstract class BaseSocketListener(
         const val MULTICAST_DATAGRAM_SIZE = 64 * 1024
         const val MULTICAST_PORT = 3702
         const val MULTICAST_ADDRESS = "239.255.255.250"
+    }
+}
+
+private fun <T> Enumeration<T>?.asSequence(): Sequence<T> = sequence {
+    if (this@asSequence != null){
+        while (hasMoreElements()) {
+            yield(nextElement())
+        }
     }
 }
