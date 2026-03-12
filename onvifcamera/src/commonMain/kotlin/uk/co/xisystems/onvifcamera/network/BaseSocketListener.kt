@@ -9,10 +9,12 @@ import kotlinx.coroutines.isActive
 import uk.co.xisystems.onvifcamera.OnvifCommands
 import uk.co.xisystems.onvifcamera.OnvifLogger
 import java.net.DatagramPacket
+import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
 import java.net.NetworkInterface
+import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.util.Enumeration
 import java.util.UUID
@@ -31,6 +33,11 @@ internal abstract class BaseSocketListener(
         return all
             .asSequence()
             .filter { it.isUp && !it.isLoopback && it.supportsMulticast() }
+            .filter { it.index > 0 } // Avoid unknown/invalid index that breaks IPV6_MULTICAST_IF
+            .filter { ni ->
+                // Only non-loopback IPv4 addresses.
+                ni.inetAddresses.asSequence().any { it is Inet4Address && !it.isLoopbackAddress }
+            }
             .filter { ni ->
                 netConfig.interfaceNames?.let { ni.name in it } ?: true
             }
@@ -46,14 +53,14 @@ internal abstract class BaseSocketListener(
             soTimeout = timeoutMillis
             timeToLive = netConfig.ttl
 
-            // Bind before join on many stacks (safer ordering).
-            bind(InetSocketAddress(MULTICAST_PORT))
+                // Bind before join on many stacks (safer ordering).
+                bind(InetSocketAddress(MULTICAST_PORT))
 
-            // Force outbound interface
-            networkInterface = ni
+                // Force outbound interface
+                networkInterface = ni
 
-            // Join group on that interface
-            joinGroup(InetSocketAddress(multicastAddress, MULTICAST_PORT), ni)
+                // Join group on that interface
+                joinGroup(InetSocketAddress(multicastAddress, MULTICAST_PORT), ni)
         }
 
         logger?.debug("MulticastSocket setup on interface ${ni.name}")
@@ -73,7 +80,14 @@ internal abstract class BaseSocketListener(
             }
 
             // Create one socket per interface
-            val sockets = interfaces.map { ni -> setupSocket(ni, timeoutMillis) }
+            val sockets = interfaces.mapNotNull { ni ->
+                try {
+                    setupSocket(ni, timeoutMillis)
+                } catch (e: SocketException) {
+                    logger?.debug("Skipping interface ${ni.name} due to ${e.message}")
+                    null
+                }
+            }
 
             try {
                 val messageId = UUID.randomUUID()
